@@ -4,6 +4,7 @@ use diesel::PgConnection;
 use diesel::result::QueryResult;
 use crate::entity::user_entity::User;
 use crate::entity::user_entity::NewUser;
+use crate::entity::user_entity::UpdateUser;
 
 pub struct UserService;
 
@@ -17,6 +18,17 @@ impl UserService {
         .values(new_user)
         .get_result(conn)
     }
+
+    pub fn update_user(
+        conn: &mut PgConnection,
+        user_id: i32,
+        updated_user: &UpdateUser,
+    ) -> QueryResult<User> {
+        diesel::update(users.filter(id.eq(user_id)))
+            .set(updated_user)
+            .get_result(conn)
+    }
+
 
 }
 

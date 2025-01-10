@@ -1,6 +1,7 @@
 use crate::entity::user_schema::users;
 use serde::{Deserialize, Serialize};
 use diesel::{Queryable, Insertable, Identifiable};
+use diesel::AsChangeset;
 
 // Struct para representar un usuario que se obtiene de la base de datos
 #[derive(Queryable, Identifiable, Serialize, Debug)]
@@ -21,3 +22,10 @@ pub struct NewUser {
     pub password: String
 }
 
+#[derive(AsChangeset, Deserialize, Serialize)]
+#[diesel(table_name = users)]
+pub struct UpdateUser {
+    pub name: Option<String>,   // Campos opcionales
+    pub email: Option<String>,
+    pub password: Option<String>
+}
