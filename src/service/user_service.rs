@@ -29,10 +29,21 @@ impl UserService {
             .set(updated_user)
             .get_result(conn)
     }
-    
+
     pub fn get_user_by_id(conn: &mut PgConnection, user_id: i32) -> QueryResult<User> {
         users.filter(id.eq(user_id)).first::<User>(conn)
     }
 
+    pub fn delete_user(conn: &mut PgConnection, user_id: i32) -> Result<(), diesel::result::Error> {
+        diesel::delete(users.filter(id.eq(user_id)))
+            .execute(conn)
+            .map(|rows_affected| {
+                if rows_affected == 0 {
+                    Err(diesel::result::Error::NotFound)
+                } else {
+                    Ok(())
+                }
+            })?
+    }
 }
 

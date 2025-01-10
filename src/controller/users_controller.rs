@@ -1,4 +1,4 @@
-use actix_web::{get, post, put, web, HttpResponse, Responder};
+use actix_web::{get, post, put, delete, web, HttpResponse, Responder};
 
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
@@ -74,10 +74,25 @@ async fn get_user_by_id(
     }
 }
 
+#[delete("/user/{user_id}")]
+async fn delete_user(
+    pool: web::Data<DbPool>,
+    user_id: web::Path<i32>,
+) -> impl Responder {
+    let mut conn = pool.get().expect("Failed to get DB connection");
+    
+    match UserService::delete_user(&mut *conn, user_id.into_inner()) {
+        Ok(_) => HttpResponse::NoContent().finish(),
+        Err(diesel::result::Error::NotFound) => HttpResponse::NotFound().body("User not found"),
+        Err(_) => HttpResponse::InternalServerError().body("Internal server error"),
+    }
+}
+
 // Función para inicializar las rutas
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(list_users)
         .service(create_user)
         .service(update_user)
-        .service(get_user_by_id);
+        .service(get_user_by_id)
+        .service(delete_user);
 }
