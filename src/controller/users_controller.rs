@@ -58,10 +58,26 @@ async fn update_user(
     }
 }
 
+#[get("/user/{user_id}")]
+async fn get_user_by_id(
+    pool: web::Data<DbPool>,
+    user_id: web::Path<i32>
+) -> impl Responder {
+    let mut conn = pool.get().expect("Failed to get DB connection");
+
+    match UserService::get_user_by_id(&mut *conn, user_id.into_inner()) {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(e) => {
+            eprintln!("Error updating user: {:?}", e);
+            HttpResponse::InternalServerError().body("Error updating user")
+        }
+    }
+}
+
 // Función para inicializar las rutas
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(list_users)
         .service(create_user)
-        .service(update_user);
+        .service(update_user)
+        .service(get_user_by_id);
 }
-
