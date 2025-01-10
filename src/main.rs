@@ -13,6 +13,10 @@ mod entity;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    let host = env::var("HOST").expect("HOST not set in .env");
+    let port = env::var("PORT").expect("PORT not set in .env");
+    let address = format!("{}:{}", host, port);
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let manager = ConnectionManager::<PgConnection>::new(database_url);
     let pool = r2d2::Pool::builder().build(manager).expect("Failed to create pool");
@@ -22,7 +26,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone())) // Pasar el pool de conexión
             .configure(init_routes) // Configurar las rutas
     })
-    .bind("127.0.0.1:8080")?
+    .bind(address)?
     .run()
     .await
 }

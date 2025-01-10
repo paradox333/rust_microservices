@@ -9,6 +9,7 @@ pub struct User {
     pub id: i32,
     pub name: String,
     pub email: String,
+    pub password: String
 }
 
 // Struct para representar un nuevo usuario que se insertará en la base de datos
@@ -17,5 +18,6 @@ pub struct User {
 pub struct NewUser {
     pub name: String,
     pub email: String,
+    pub password: String
 }
 
