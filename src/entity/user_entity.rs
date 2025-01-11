@@ -2,6 +2,8 @@ use crate::entity::user_schema::users;
 use serde::{Deserialize, Serialize};
 use diesel::{Queryable, Insertable, Identifiable};
 use diesel::AsChangeset;
+use validator_derive::Validate; // Importa la macro derive
+
 
 // Struct para representar un usuario que se obtiene de la base de datos
 #[derive(Queryable, Identifiable, Serialize, Debug)]
@@ -14,11 +16,14 @@ pub struct User {
 }
 
 // Struct para representar un nuevo usuario que se insertará en la base de datos
-#[derive(Insertable, Deserialize)]
+#[derive(Insertable, Deserialize, Validate)]
 #[diesel(table_name = users)]
 pub struct NewUser {
+    #[validate(length(min = 3, max = 100))]
     pub name: String,
+    #[validate(email)]
     pub email: String,
+    #[validate(length(min = 8, max = 20))]
     pub password: String
 }
 

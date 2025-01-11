@@ -6,6 +6,8 @@ use crate::entity::user_entity::NewUser;
 use crate::service::user_service::UserService;
 use crate::entity::user_entity::UpdateUser;
 use crate::util::responses::ResponseBuilder;
+use validator::Validate;
+use validator::ValidationErrors;
 
 // Tipo del pool de conexión a la base de datos
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
@@ -53,19 +55,32 @@ async fn create_user(
     pool: web::Data<DbPool>,
     user: web::Json<NewUser>,
 ) -> impl Responder {
+    let user = user.into_inner();
+
+    // Validar los datos antes de intentar crear el usuario
+    if let Err(validation_errors) = user.validate() {
+        eprintln!("Validation error: {:?}", validation_errors);
+        return HttpResponse::BadRequest().json(ResponseBuilder::<Option<ValidationErrors>>::new(400)
+            .message("Validation failed".to_string())
+            .result(Some(validation_errors))
+            .build());
+    }
+
     let mut conn = pool.get().expect("Failed to get DB connection");
 
-    match UserService::create_user(&mut *conn, &user.into_inner()) {
+    match UserService::create_user(&mut *conn, &user) {
         Ok(created_user) => HttpResponse::build(StatusCode::OK)
-            .json(ResponseBuilder::<User>::new(200)
-            .message(format!("Success")).result(created_user)
+            .json(ResponseBuilder::<Option<User>>::new(200)
+            .message("Success".to_string())
+            .result(Some(created_user))
             .build()),
         Err(e) => {
-            eprintln!("Error creating user: {:?}", e); // Imprimir el error en consola
+            eprintln!("Error creating user: {:?}", e);
             HttpResponse::InternalServerError().body(format!("Error creating user: {}", e))
         }
     }
 }
+
 
 #[put("/user/{user_id}")]
 async fn update_user(
