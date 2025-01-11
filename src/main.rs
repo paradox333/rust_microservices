@@ -9,6 +9,7 @@ use controller::users_controller::init_routes;
 
 mod service;
 mod entity;
+mod util;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
