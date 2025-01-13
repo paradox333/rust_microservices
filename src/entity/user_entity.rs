@@ -27,10 +27,14 @@ pub struct NewUser {
     pub password: String
 }
 
-#[derive(AsChangeset, Deserialize, Serialize)]
+#[derive(AsChangeset, Deserialize, Serialize, Validate)]
 #[diesel(table_name = users)]
 pub struct UpdateUser {
+
+    #[validate(length(min = 3, max = 100))]
     pub name: Option<String>,   // Campos opcionales
+    #[validate(email)]
     pub email: Option<String>,
+    #[validate(length(min = 8, max = 20))]
     pub password: Option<String>
 }

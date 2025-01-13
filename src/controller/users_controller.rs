@@ -88,11 +88,22 @@ async fn update_user(
     user_id: web::Path<i32>,
     updated_user: web::Json<UpdateUser>,
 ) -> impl Responder {
+
+    let user = updated_user.into_inner();
+
+    if let Err(validation_errors) = user.validate() {
+        eprintln!("Validation error: {:?}", validation_errors);
+        return HttpResponse::BadRequest().json(ResponseBuilder::<Option<ValidationErrors>>::new(400)
+            .message("Validation failed".to_string())
+            .result(Some(validation_errors))
+            .build());
+    }
+
     let mut conn = pool.get().expect("Failed to get DB connection");
 
-    match UserService::update_user(&mut *conn, user_id.into_inner(), &updated_user.into_inner()) {
+    match UserService::update_user(&mut *conn, user_id.into_inner(), &user) {
         Ok(user) => HttpResponse::build(StatusCode::OK)
-            .json(ResponseBuilder::<User>::new(201)
+            .json(ResponseBuilder::<User>::new(200)
             .message(format!("Success")).result(user)
             .build()),
         Err(e) => {
